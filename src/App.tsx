@@ -66,6 +66,7 @@ export default function App() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [photo, setPhoto] = useState<string | null>(null);
   const [showCamera, setShowCamera] = useState(false);
+  const [facingMode, setFacingMode] = useState<"user" | "environment">("user");
   const videoRef = React.useRef<HTMLVideoElement>(null);
 
   // Perbaikan: Gunakan useEffect untuk menempelkan stream ke video saat elemen sudah muncul
@@ -75,7 +76,13 @@ export default function App() {
     async function enableStream() {
       if (showCamera) {
         try {
-          stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user' } });
+          stream = await navigator.mediaDevices.getUserMedia({ 
+            video: { 
+              facingMode: facingMode,
+              width: { ideal: 1280 },
+              height: { ideal: 720 }
+            } 
+          });
           if (videoRef.current) {
             videoRef.current.srcObject = stream;
           }
@@ -94,7 +101,11 @@ export default function App() {
         stream.getTracks().forEach(track => track.stop());
       }
     };
-  }, [showCamera]);
+  }, [showCamera, facingMode]);
+
+  const toggleCamera = () => {
+    setFacingMode(prev => prev === "user" ? "environment" : "user");
+  };
 
   const startCamera = () => {
     setShowCamera(true);
@@ -221,9 +232,9 @@ export default function App() {
   });
 
   return (
-    <div className="min-h-screen bg-slate-50 flex font-sans text-slate-900">
-      {/* Sidebar */}
-      <aside className="w-64 bg-white border-r border-slate-200 flex flex-col hidden md:flex">
+    <div className="min-h-screen bg-slate-50 flex flex-col md:flex-row font-sans text-slate-900 pb-16 md:pb-0">
+      {/* Sidebar - Desktop Only */}
+      <aside className="w-64 bg-white border-r border-slate-200 hidden md:flex flex-col">
         <div className="p-6 border-b border-slate-100">
           <div className="flex items-center gap-3 text-blue-600 font-bold text-xl tracking-tight">
             <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center text-white font-bold shadow-lg shadow-blue-600/20">I</div>
@@ -271,37 +282,36 @@ export default function App() {
       {/* Main Content */}
       <main className="flex-1 flex flex-col h-screen overflow-hidden">
         {/* Header */}
-        <header className="h-16 bg-white border-b border-slate-200 flex items-center justify-between px-8 z-10">
+        <header className="h-16 bg-white border-b border-slate-200 flex items-center justify-between px-4 md:px-8 shrink-0 z-10">
           <div className="flex items-center gap-4 flex-1">
             <div className="relative w-full max-w-md">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
               <input 
                 type="text" 
-                placeholder="Cari barang atau spek..."
-                className="w-full pl-10 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-blue-500/10 focus:border-blue-600 transition-all outline-none"
+                placeholder="Cari data..."
+                className="w-full pl-10 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-blue-500/10 focus:border-blue-600 transition-all outline-none"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
               />
             </div>
           </div>
-          <div className="flex items-center gap-2">
-            <div className="px-3 py-1 bg-green-100 text-green-700 text-[10px] font-bold uppercase tracking-wider rounded-full flex items-center gap-1.5">
+          <div className="flex items-center gap-2 ml-2">
+            <div className="hidden sm:flex px-3 py-1 bg-green-100 text-green-700 text-[9px] font-bold uppercase tracking-wider rounded-full items-center gap-1.5">
               <span className="w-1.5 h-1.5 bg-green-500 rounded-full"></span>
-              Live Sync Active
+              Live Sync
             </div>
-            <div className="px-3 py-1 bg-blue-100 text-blue-700 text-[10px] font-bold uppercase tracking-wider rounded-full">
-              ID: 829X...
+            <div className="px-3 py-1 bg-blue-100 text-blue-700 text-[9px] font-bold uppercase tracking-wider rounded-full">
+              ADMIN
             </div>
           </div>
         </header>
 
         {/* Scrollable Area */}
-        <div className="flex-1 overflow-y-auto p-8 bg-slate-50">
+        <div className="flex-1 overflow-y-auto p-4 md:p-8 bg-slate-50">
           <header className="mb-6">
-            <h2 className="text-2xl font-bold text-slate-900 tracking-tight">
-              {activeTab === 'input' ? 'Input Peminjaman Barang' : activeTab === 'history' ? 'Riwayat Peminjaman' : 'Pengaturan Integrasi'}
+            <h2 className="text-xl md:text-2xl font-bold text-slate-900 tracking-tight">
+              {activeTab === 'input' ? 'Pencatatan Baru' : activeTab === 'history' ? 'Riwayat Pinjam' : 'Pengaturan'}
             </h2>
-            <p className="text-sm text-slate-500">Sistem inventarisasi barang terpusat dan otomatis</p>
           </header>
 
           <AnimatePresence mode="wait">
@@ -311,11 +321,11 @@ export default function App() {
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -10 }}
-                className="grid grid-cols-3 gap-8"
+                className="grid grid-cols-1 lg:grid-cols-3 gap-6"
               >
                 {/* Main Form */}
-                <form onSubmit={handleLoanSubmit} className="col-span-2 bg-white rounded-2xl border border-slate-200 shadow-sm p-8 space-y-6">
-                  <div className="grid grid-cols-2 gap-6">
+                <form onSubmit={handleLoanSubmit} className="lg:col-span-2 bg-white rounded-2xl border border-slate-200 shadow-sm p-5 md:p-8 space-y-6">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
                     <div className="space-y-2">
                       <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest flex items-center gap-2">
                         <Package className="w-3 h-3" /> Nama Barang
@@ -330,7 +340,7 @@ export default function App() {
                     </div>
                   </div>
 
-                  <div className="grid grid-cols-3 gap-6">
+                  <div className="grid grid-cols-2 md:grid-cols-3 gap-4 md:gap-6">
                     <div className="space-y-2">
                       <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest flex items-center gap-2">
                         <PlusCircle className="w-3 h-3" /> Jumlah
@@ -339,11 +349,11 @@ export default function App() {
                     </div>
                     <div className="space-y-2">
                       <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest flex items-center gap-2">
-                        <Calendar className="w-3 h-3" /> Hari & Tanggal
+                        <Calendar className="w-3 h-3" /> Tgl Pinjam
                       </label>
                       <input name="borrowDate" type="date" required defaultValue={new Date().toISOString().split('T')[0]} className="w-full px-4 py-3 bg-slate-50 border border-slate-100 rounded-xl text-sm focus:ring-2 focus:ring-blue-500/10 focus:border-blue-600 outline-none transition-all" />
                     </div>
-                    <div className="space-y-2">
+                    <div className="col-span-2 md:col-span-1 space-y-2">
                       <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest flex items-center gap-2">
                         <User className="w-3 h-3" /> Peminjam
                       </label>
@@ -351,9 +361,9 @@ export default function App() {
                     </div>
                   </div>
 
-                  <div className="grid grid-cols-2 gap-6">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
                     <div className="space-y-2">
-                      <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Keadaan Saat Dipinjam</label>
+                      <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Kondisi Saat Pinjam</label>
                       <select name="condition" className="w-full px-4 py-3 bg-slate-50 border border-slate-100 rounded-xl text-sm focus:ring-2 focus:ring-blue-500/10 focus:border-blue-600 outline-none transition-all">
                         <option value="Baik">🟢 Baik</option>
                         <option value="Rusak Ringan">🟡 Rusak Ringan</option>
@@ -361,7 +371,7 @@ export default function App() {
                       </select>
                     </div>
                     <div className="space-y-2">
-                      <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Est. Tanggal Kembali</label>
+                      <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Est. Tgl Kembali</label>
                       <input name="expectedReturnDate" type="date" required className="w-full px-4 py-3 bg-slate-50 border border-slate-100 rounded-xl text-sm focus:ring-2 focus:ring-blue-500/10 focus:border-blue-600 outline-none transition-all" />
                     </div>
                   </div>
@@ -387,22 +397,32 @@ export default function App() {
                           </button>
                         </div>
                       ) : showCamera ? (
-                        <div className="relative w-full max-w-sm rounded-xl overflow-hidden bg-slate-900 border-2 border-blue-500">
-                          <video ref={videoRef} autoPlay playsInline className="w-full h-auto" />
-                          <div className="absolute bottom-4 left-0 right-0 flex justify-center gap-4">
+                        <div className="relative w-full max-w-sm rounded-xl overflow-hidden bg-slate-900 border-2 border-blue-500 shadow-2xl">
+                          <video ref={videoRef} autoPlay playsInline className={`w-full h-auto ${facingMode === 'user' ? 'scale-x-[-1]' : ''}`} />
+                          <div className="absolute top-4 right-4">
+                            <button 
+                              type="button"
+                              onClick={toggleCamera}
+                              className="bg-white/20 backdrop-blur-md text-white p-2 rounded-full border border-white/20 hover:bg-white/30 transition-all active:scale-90"
+                              title="Tukar Kamera"
+                            >
+                              <ArrowLeftRight className="w-5 h-5" />
+                            </button>
+                          </div>
+                          <div className="absolute bottom-4 left-0 right-0 flex justify-center gap-6">
                             <button 
                               type="button" 
                               onClick={capturePhoto}
-                              className="bg-blue-600 text-white p-3 rounded-full shadow-lg hover:bg-blue-700 active:scale-95 transition-all"
+                              className="bg-blue-600 text-white p-4 rounded-full shadow-lg hover:bg-blue-700 active:scale-95 transition-all outline-none ring-4 ring-blue-600/20"
                             >
-                              <Camera className="w-6 h-6" />
+                              <Camera className="w-7 h-7" />
                             </button>
                             <button 
                               type="button" 
                               onClick={stopCamera}
-                              className="bg-red-600 text-white p-3 rounded-full shadow-lg hover:bg-red-700 active:scale-95 transition-all"
+                              className="bg-red-600 text-white p-4 rounded-full shadow-lg hover:bg-red-700 active:scale-95 transition-all outline-none ring-4 ring-red-600/20"
                             >
-                              <CameraOff className="w-6 h-6" />
+                              <CameraOff className="w-7 h-7" />
                             </button>
                           </div>
                         </div>
@@ -445,8 +465,8 @@ export default function App() {
                 </form>
 
                 {/* Info Column */}
-                <div className="col-span-1 space-y-6">
-                  <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm">
+                <div className="space-y-6">
+                  <div className="bg-white rounded-2xl border border-slate-200 p-5 md:p-6 shadow-sm">
                     <h3 className="text-sm font-bold text-slate-800 mb-4 flex items-center gap-2">
                       <History className="w-4 h-4 text-orange-500" />
                       Status Pinjaman Aktif
@@ -487,14 +507,14 @@ export default function App() {
                 exit={{ opacity: 0, x: -20 }}
                 className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden"
               >
-                <div className="p-4 border-b border-slate-100 bg-slate-50/30 flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mr-2">Filter Status:</span>
+                <div className="p-4 border-b border-slate-100 bg-slate-50/30 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                  <div className="flex items-center gap-2 overflow-x-auto pb-1 sm:pb-0 no-scrollbar">
+                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mr-1 shrink-0">Filter:</span>
                     {(['Semua', 'Dipinjam', 'Kembali'] as const).map((status) => (
                       <button
                         key={status}
                         onClick={() => setStatusFilter(status)}
-                        className={`px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest transition-all ${
+                        className={`px-3 py-1.5 rounded-full text-[9px] font-bold uppercase tracking-widest transition-all shrink-0 ${
                           statusFilter === status 
                             ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/20' 
                             : 'bg-white text-slate-500 border border-slate-200 hover:border-blue-300'
@@ -504,11 +524,107 @@ export default function App() {
                       </button>
                     ))}
                   </div>
-                  <div className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
-                    {filteredRecords.length} Data ditemukan
+                  <div className="text-[9px] font-bold text-slate-400 uppercase tracking-widest flex items-center justify-between sm:justify-end gap-2">
+                    <span>{filteredRecords.length} Data ditemukan</span>
                   </div>
                 </div>
-                <div className="overflow-x-auto">
+                
+                {/* Mobile Card View */}
+                <div className="md:hidden divide-y divide-slate-100">
+                  {isLoading ? (
+                    <div className="px-6 py-12 text-center">
+                      <div className="flex flex-col items-center gap-3">
+                        <div className="w-6 h-6 border-2 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+                        <p className="text-xs text-slate-400 font-bold uppercase tracking-widest">Sync Data...</p>
+                      </div>
+                    </div>
+                  ) : filteredRecords.length === 0 ? (
+                    <div className="px-6 py-12 text-center text-slate-400 text-sm">Data tidak ditemukan</div>
+                  ) : (
+                    filteredRecords.map(record => (
+                      <div key={record.id} className="p-4 space-y-4">
+                        <div className="flex items-start justify-between">
+                          <div className="flex items-center gap-3">
+                            <div className="relative">
+                               {record.borrowerPhoto ? (
+                                 <img 
+                                   src={record.borrowerPhoto} 
+                                   className="w-10 h-10 rounded-full object-cover border-2 border-white shadow-sm" 
+                                   alt={record.borrower} 
+                                   onClick={() => setPreviewPhoto(record.borrowerPhoto || null)}
+                                 />
+                               ) : (
+                                 <div className="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center text-slate-400 border-2 border-white shadow-sm">
+                                   <User className="w-5 h-5" />
+                                 </div>
+                               )}
+                               <div className={`absolute -bottom-1 -right-1 w-4 h-4 rounded-full border-2 border-white flex items-center justify-center ${record.status === 'Dipinjam' ? 'bg-orange-500' : 'bg-green-500'}`}>
+                                 {record.status === 'Dipinjam' ? <AlertCircle className="w-2 h-2 text-white" /> : <CheckCircle2 className="w-2 h-2 text-white" />}
+                               </div>
+                            </div>
+                            <div>
+                              <div className="font-bold text-slate-800 text-sm">{record.itemName}</div>
+                              <div className="text-[10px] text-slate-500 flex items-center gap-1">
+                                <span className="font-semibold">{record.borrower}</span> • <span className="font-mono text-[9px]">{record.id}</span>
+                              </div>
+                            </div>
+                          </div>
+                          <span className={`px-2 py-0.5 rounded-full text-[8px] font-bold uppercase tracking-widest border ${record.status === 'Dipinjam' ? 'bg-orange-50 text-orange-700 border-orange-100' : 'bg-emerald-50 text-emerald-700 border-emerald-100'}`}>
+                            {record.status}
+                          </span>
+                        </div>
+
+                        <div className="grid grid-cols-2 gap-4 bg-slate-50/50 p-3 rounded-xl border border-slate-100">
+                          <div>
+                            <p className="text-[8px] font-bold text-slate-400 uppercase tracking-widest mb-1 leading-none">Pinjam</p>
+                            <p className="text-[11px] font-bold text-slate-700 tracking-tight">{record.borrowDate}</p>
+                            <p className="text-[9px] font-bold text-blue-500 uppercase tracking-widest mt-0.5">{record.borrowCondition}</p>
+                          </div>
+                          <div>
+                            <p className="text-[8px] font-bold text-slate-400 uppercase tracking-widest mb-1 leading-none">Estimasi</p>
+                            <p className="text-[11px] font-bold text-slate-700 tracking-tight">{record.expectedReturnDate}</p>
+                            {record.returnDate && (
+                              <p className="text-[9px] font-bold text-emerald-500 uppercase tracking-widest mt-0.5">{record.returnDate}</p>
+                            )}
+                          </div>
+                        </div>
+
+                        <div className="flex items-center justify-between pt-1">
+                          <div className="flex items-center gap-2">
+                             {record.returnPhoto ? (
+                               <button 
+                                 onClick={() => setPreviewPhoto(record.returnPhoto || null)}
+                                 className="flex items-center gap-1.5 px-2 py-1 bg-white border border-slate-200 rounded-lg shadow-sm"
+                               >
+                                 <Camera className="w-3 h-3 text-slate-400" />
+                                 <span className="text-[9px] font-bold text-slate-500 uppercase tracking-wider">Foto Bukti</span>
+                               </button>
+                             ) : record.status === 'Kembali' && (
+                               <span className="text-[9px] text-slate-400 italic">Tanpa foto bukti</span>
+                             )}
+                          </div>
+                          
+                          {record.status === 'Dipinjam' ? (
+                            <button 
+                              onClick={() => setShowReturnModal(record)}
+                              className="px-4 py-2 bg-blue-600 text-white rounded-lg text-[10px] font-bold uppercase tracking-widest shadow-lg shadow-blue-600/20 active:scale-95 transition-all"
+                            >
+                              Konfirmasi Kembali
+                            </button>
+                          ) : (
+                             <div className="flex items-center gap-1.5 text-emerald-600 bg-emerald-50 px-3 py-1.5 rounded-lg border border-emerald-100">
+                               <CheckCircle2 className="w-3 h-3" />
+                               <span className="text-[10px] font-bold uppercase tracking-widest">Selesai</span>
+                             </div>
+                          )}
+                        </div>
+                      </div>
+                    ))
+                  )}
+                </div>
+
+                {/* Desktop Table View */}
+                <div className="hidden md:block overflow-x-auto">
                   <table className="w-full text-left border-collapse">
                     <thead className="bg-slate-50 text-slate-500 text-[10px] font-bold uppercase tracking-widest border-b border-slate-200">
                       <tr>
@@ -723,6 +839,37 @@ function doPost(e) {
           </AnimatePresence>
         </div>
       </main>
+
+      {/* Bottom Navigation - Mobile Only */}
+      <nav className="fixed bottom-0 left-0 right-0 h-16 bg-white border-t border-slate-200 flex md:hidden items-center justify-around px-2 z-40 bg-white/80 backdrop-blur-lg">
+        <button 
+          onClick={() => setActiveTab('input')}
+          className={`flex flex-col items-center justify-center gap-1 w-full h-full transition-all ${activeTab === 'input' ? 'text-blue-600' : 'text-slate-400'}`}
+        >
+          <div className={`p-1.5 rounded-xl transition-all ${activeTab === 'input' ? 'bg-blue-50' : 'text-slate-400'}`}>
+            <PlusCircle className="w-5 h-5" />
+          </div>
+          <span className="text-[9px] font-bold uppercase tracking-wider">Input</span>
+        </button>
+        <button 
+          onClick={() => setActiveTab('history')}
+          className={`flex flex-col items-center justify-center gap-1 w-full h-full transition-all ${activeTab === 'history' ? 'text-blue-600' : 'text-slate-400'}`}
+        >
+          <div className={`p-1.5 rounded-xl transition-all ${activeTab === 'history' ? 'bg-blue-50' : 'text-slate-400'}`}>
+            <History className="w-5 h-5" />
+          </div>
+          <span className="text-[9px] font-bold uppercase tracking-wider">Riwayat</span>
+        </button>
+        <button 
+          onClick={() => setActiveTab('setup')}
+          className={`flex flex-col items-center justify-center gap-1 w-full h-full transition-all ${activeTab === 'setup' ? 'text-blue-600' : 'text-slate-400'}`}
+        >
+          <div className={`p-1.5 rounded-xl transition-all ${activeTab === 'setup' ? 'bg-blue-50' : 'text-slate-400'}`}>
+            <Settings className="w-5 h-5" />
+          </div>
+          <span className="text-[9px] font-bold uppercase tracking-wider">Config</span>
+        </button>
+      </nav>
 
       {/* Return Modal */}
       <AnimatePresence>
