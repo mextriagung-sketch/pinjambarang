@@ -28,7 +28,7 @@ import { Item, LoanRecord, ItemCondition, LoanStatus } from './types';
 
 // --- CONFIGURATION ---
 // Paste your Google Apps Script Web App URL here after deployment
-const APPS_SCRIPT_URL = import.meta.env.VITE_APPS_SCRIPT_URL || "https://script.google.com/macros/s/AKfycbzQ7GRwAKaoD3Pi2wLIHudYhbv9EUosqMwxxkmx87nm1rApY2L5A4tuvgP-GdiV5xsL/exec"; 
+const APPS_SCRIPT_URL = import.meta.env.VITE_APPS_SCRIPT_URL || "https://script.google.com/macros/s/AKfycbyNw5cx_uEO0XpxwT24JWkA7FACxs2wDGynDchmYXnFQUYRrgqW886c_O4K2FcV0Tn2/exec"; 
 
 export default function App() {
   const [activeTab, setActiveTab] = useState<'input' | 'history' | 'setup'>('input');
@@ -546,7 +546,7 @@ export default function App() {
                         <div className="flex items-start justify-between">
                           <div className="flex items-center gap-3">
                             <div className="relative">
-                               {record.borrowerPhoto ? (
+                      {record.borrowerPhoto && record.borrowerPhoto.startsWith('data:image') ? (
                                  <img 
                                    src={record.borrowerPhoto} 
                                    className="w-10 h-10 rounded-full object-cover border-2 border-white shadow-sm" 
@@ -591,7 +591,7 @@ export default function App() {
 
                         <div className="flex items-center justify-between pt-1">
                           <div className="flex items-center gap-2">
-                             {record.returnPhoto ? (
+                             {record.returnPhoto && record.returnPhoto.startsWith('data:image') ? (
                                <button 
                                  onClick={() => setPreviewPhoto(record.returnPhoto || null)}
                                  className="flex items-center gap-1.5 px-2 py-1 bg-white border border-slate-200 rounded-lg shadow-sm"
@@ -660,7 +660,7 @@ export default function App() {
                             </td>
                             <td className="px-6 py-4">
                               <div className="flex items-center gap-3">
-                                {record.borrowerPhoto ? (
+                                {record.borrowerPhoto && record.borrowerPhoto.startsWith('data:image') ? (
                                   <img 
                                     src={record.borrowerPhoto} 
                                     className="w-8 h-8 rounded-full object-cover border border-slate-200 cursor-zoom-in hover:scale-110 transition-transform" 
@@ -691,7 +691,7 @@ export default function App() {
                                </span>
                             </td>
                             <td className="px-6 py-4">
-                               {record.returnPhoto ? (
+                               {record.returnPhoto && record.returnPhoto.startsWith('data:image') ? (
                                  <img 
                                    src={record.returnPhoto} 
                                    className="w-8 h-8 rounded-full object-cover border border-slate-200 cursor-zoom-in hover:scale-110 transition-transform" 
@@ -798,7 +798,7 @@ function doPost(e) {
   var action = payload.action;
   var data = payload.data;
   if (action === "ADD_RECORD") {
-    sheet.appendRow([data.id, data.itemName, data.borrower, data.borrowDate, data.expectedReturnDate, data.borrowCondition, data.quantity, data.notes, data.status, "-", "-", data.borrowerPhoto || "Tanpa Foto", "Belum Kembali"]);
+    sheet.appendRow([data.id, data.itemName, data.borrower, data.borrowDate, data.expectedReturnDate, data.borrowCondition, data.quantity, data.notes, data.status, "-", "-", data.borrowerPhoto || "-", "-"]);
   } else if (action === "RETURN_ITEM") {
     var rows = sheet.getDataRange().getValues();
     for (var i = 1; i < rows.length; i++) {
@@ -806,7 +806,7 @@ function doPost(e) {
         sheet.getRange(i + 1, 9).setValue("Kembali");
         sheet.getRange(i + 1, 10).setValue(data.returnDate);
         sheet.getRange(i + 1, 11).setValue(data.returnCondition);
-        sheet.getRange(i + 1, 13).setValue(data.returnPhoto || "Tanpa Foto");
+        sheet.getRange(i + 1, 13).setValue(data.returnPhoto || "-");
         break;
       }
     }
