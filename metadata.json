@@ -1,0 +1,6 @@
+{
+  "name": "Inventaris & Pinjam Barang",
+  "description": "Sistem peminjaman barang terintegrasi Google Sheets untuk inventaris, riwayat, dan pemantauan kondisi barang.",
+  "requestFramePermissions": ["camera"],
+  "majorCapabilities": []
+}
